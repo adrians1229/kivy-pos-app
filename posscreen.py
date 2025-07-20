@@ -3,6 +3,7 @@ import os
 os.environ['KIVY_WINDOW']='sdl2'
 
 from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.screenmanager import ScreenManager, Screen
 from kivy.uix.popup import Popup
 from kivy.uix.label import Label
