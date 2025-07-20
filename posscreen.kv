@@ -1,0 +1,356 @@
+# posscreen.kv
+
+<StartScreen>:
+    canvas.before:
+        Rectangle:
+            source: 'images/tinapay.jpg'
+            pos: self.pos
+            size: self.size
+
+    # Center the button for landscape layout
+    RelativeLayout:
+        Button:
+            text: 'START'
+            size_hint: None, None
+            size: dp(150), dp(50)
+            pos_hint: {'center_x': 0.5, 'center_y': 0.10}
+            font_size: sp(24)
+            bold: True
+            background_normal: ''
+            background_color: (0.2, 0.7, 0.2, 1)
+            color: (1, 1, 1, 1)
+            on_press: root.on_start_pressed()
+
+<DashboardScreen>:
+    canvas.before:
+        Color:
+            rgba: 0.95, 0.95, 0.95, 1  # Light gray background
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    
+    BoxLayout:
+        orientation: 'horizontal'
+        padding: dp(8)
+        spacing: dp(8)
+        
+        # Left panel - Product selection (optimized for landscape)
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: dp(8)
+            size_hint_x: 0.28
+            
+            # Product image - adjusted for landscape
+            Widget:
+                size_hint_y: 0.35
+                canvas.before:
+                    Rectangle:
+                        source: 'images/PIE.jpg'
+                        pos: self.pos
+                        size: self.size
+                        
+            # Product info
+            Label:
+                text: root.product_name
+                font_size: sp(16)
+                bold: True
+                size_hint_y: None
+                height: dp(35)
+                color: (0, 0, 0, 1)
+                text_size: self.size
+                halign: 'center'
+                valign: 'middle'
+                
+            Label:
+                text: f"₱{root.product_price:.2f}"
+                font_size: sp(15)
+                size_hint_y: None
+                height: dp(30)
+                color: (0, 0, 0, 1)
+                text_size: self.size
+                halign: 'center'
+                valign: 'middle'
+            
+            # Quantity controls - compact for landscape
+            BoxLayout:
+                orientation: 'horizontal'
+                size_hint_y: None
+                height: dp(45)
+                spacing: dp(5)
+                
+                Button:
+                    text: "-"
+                    size_hint_x: 0.25
+                    font_size: sp(18)
+                    bold: True
+                    background_normal: ''
+                    background_color: (0.8, 0.3, 0.3, 1)
+                    color: (1, 1, 1, 1)
+                    on_press: root.decrease_quantity()
+                
+                Label:
+                    text: f"Qty: {root.current_quantity}"
+                    font_size: sp(14)
+                    bold: True
+                    color: (0, 0, 0, 1)
+                    size_hint_x: 0.5
+                    text_size: self.size
+                    halign: 'center'
+                    valign: 'middle'
+                    canvas.before:
+                        Color:
+                            rgba: 0.9, 0.9, 0.9, 1
+                        Rectangle:
+                            pos: self.pos
+                            size: self.size
+                
+                Button:
+                    text: "+"
+                    size_hint_x: 0.25
+                    font_size: sp(18)
+                    bold: True
+                    background_normal: ''
+                    background_color: (0.2, 0.6, 0.2, 1)
+                    color: (1, 1, 1, 1)
+                    on_press: root.increase_quantity()
+                
+            Button:
+                text: "ADD TO ORDER"
+                size_hint_y: None
+                height: dp(45)
+                font_size: sp(14)
+                bold: True
+                background_normal: ''
+                background_color: (0.2, 0.6, 0.2, 1)
+                color: (1, 1, 1, 1)
+                on_press: root.add_to_order()
+                
+        # Middle panel - Order details and checkout (optimized for landscape)
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: dp(8)
+            size_hint_x: 0.42
+            
+            # Customer info - compact
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: dp(8)
+                size_hint_y: None
+                height: dp(35)
+                
+                Label:
+                    text: "Customer:"
+                    font_size: sp(12)
+                    size_hint_x: 0.3
+                    color: (0, 0, 0, 1)
+                    text_size: self.size
+                    halign: 'left'
+                    valign: 'middle'
+                    
+                TextInput:
+                    id: customer_name_input
+                    multiline: False
+                    size_hint_x: 0.7
+                    font_size: sp(12)
+                    hint_text: "Enter name (optional)"
+                    on_text: root.customer_name = self.text
+                    
+            # Order table header
+            Label:
+                text: "ORDER DETAILS"
+                font_size: sp(14)
+                bold: True
+                size_hint_y: None
+                height: dp(25)
+                color: (0, 0, 0, 1)
+                
+            # Order table - larger for landscape
+            ScrollView:
+                size_hint_y: 0.45
+                canvas.before:
+                    Color:
+                        rgba: 1, 1, 1, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                    Color:
+                        rgba: 0.8, 0.8, 0.8, 1
+                    Line:
+                        rectangle: self.pos + self.size
+                        
+                GridLayout:
+                    id: order_table
+                    cols: 1
+                    size_hint_y: None
+                    height: self.minimum_height
+                    padding: dp(5)
+                    spacing: dp(2)
+                    
+            # Payment section - compact for landscape
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: dp(5)
+                size_hint_y: None
+                height: dp(100)
+                
+                Label:
+                    id: total_label
+                    text: "TOTAL: ₱0.00"
+                    font_size: sp(16)
+                    bold: True
+                    size_hint_y: None
+                    height: dp(25)
+                    color: (0.2, 0.6, 0.2, 1)
+                    
+                BoxLayout:
+                    orientation: 'horizontal'
+                    spacing: dp(8)
+                    size_hint_y: None
+                    height: dp(30)
+                    
+                    Label:
+                        text: "Payment:"
+                        font_size: sp(12)
+                        size_hint_x: 0.3
+                        color: (0, 0, 0, 1)
+                        text_size: self.size
+                        halign: 'left'
+                        valign: 'middle'
+                        
+                    TextInput:
+                        id: payment_input
+                        multiline: False
+                        size_hint_x: 0.7
+                        font_size: sp(12)
+                        hint_text: "Enter payment amount"
+                        input_filter: 'float'
+                        on_text: root.on_payment_change(self.text)
+                        
+                Label:
+                    id: change_label
+                    text: "Change: ₱0.00"
+                    font_size: sp(14)
+                    bold: True
+                    size_hint_y: None
+                    height: dp(25)
+                    color: (0.1, 0.4, 0.8, 1)
+                    
+            # Action buttons - side by side for landscape
+            BoxLayout:
+                orientation: 'horizontal'
+                spacing: dp(8)
+                size_hint_y: None
+                height: dp(40)
+                
+                Button:
+                    text: "CLEAR ORDER"
+                    font_size: sp(12)
+                    bold: True
+                    background_normal: ''
+                    background_color: (0.8, 0.3, 0.3, 1)
+                    color: (1, 1, 1, 1)
+                    on_press: root.clear_order()
+                    
+                Button:
+                    text: "PROCESS PAYMENT"
+                    font_size: sp(12)
+                    bold: True
+                    background_normal: ''
+                    background_color: (0.2, 0.6, 0.2, 1)
+                    color: (1, 1, 1, 1)
+                    on_press: root.process_payment()
+                    
+        # Right panel - Menu options (optimized for landscape)
+        BoxLayout:
+            orientation: 'vertical'
+            spacing: dp(8)
+            size_hint_x: 0.3
+            
+            Label:
+                text: "MENU OPTIONS"
+                font_size: sp(16)
+                bold: True
+                size_hint_y: None
+                height: dp(35)
+                color: (0, 0, 0, 1)
+                text_size: self.size
+                halign: 'center'
+                valign: 'middle'
+                
+            Button:
+                text: "VIEW CURRENT ORDER"
+                font_size: sp(13)
+                bold: True
+                size_hint_y: None
+                height: dp(45)
+                background_normal: ''
+                background_color: (0.1, 0.4, 0.8, 1)
+                color: (1, 1, 1, 1)
+                on_press: root.view_order()
+                
+            Button:
+                text: "TRANSACTION HISTORY"
+                font_size: sp(13)
+                bold: True
+                size_hint_y: None
+                height: dp(45)
+                background_normal: ''
+                background_color: (0.6, 0.4, 0.8, 1)
+                color: (1, 1, 1, 1)
+                on_press: root.view_transaction_history()
+                
+            # Quick stats display for landscape
+            BoxLayout:
+                orientation: 'vertical'
+                spacing: dp(3)
+                size_hint_y: None
+                height: dp(100)
+                canvas.before:
+                    Color:
+                        rgba: 0.9, 0.9, 0.9, 1
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                
+                Label:
+                    text: "QUICK STATS"
+                    font_size: sp(12)
+                    bold: True
+                    size_hint_y: None
+                    height: dp(22)
+                    color: (0.2, 0.6, 0.2, 1)
+                    
+                Label:
+                    id: today_sales_label
+                    text: f"Today: ₱{root.today_sales:.2f}"
+                    font_size: sp(9)
+                    size_hint_y: None
+                    height: dp(18)
+                    color: (0, 0, 0, 1)
+                    
+                Label:
+                    id: today_transactions_label
+                    text: f"Transactions: {root.today_transactions}"
+                    font_size: sp(9)
+                    size_hint_y: None
+                    height: dp(18)
+                    color: (0, 0, 0, 1)
+                    
+                Label:
+                    id: current_items_label
+                    text: f"Items in Order: {root.current_order_items}"
+                    font_size: sp(9)
+                    size_hint_y: None
+                    height: dp(18)
+                    color: (0, 0, 0, 1)
+                    
+                Label:
+                    id: current_total_label
+                    text: f"Order Total: ₱{root.current_order_total:.2f}"
+                    font_size: sp(9)
+                    size_hint_y: None
+                    height: dp(18)
+                    color: (0.2, 0.6, 0.2, 1)
+                    
+            # Additional space for future features
+            Widget:

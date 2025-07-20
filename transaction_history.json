@@ -1,0 +1,152 @@
+[
+  {
+    "order_id": "GC101121",
+    "date_time": "2025-07-05 10:11:21",
+    "customer_name": "cis",
+    "items": [
+      {
+        "name": "Ginger Calamansi",
+        "price": 25.0,
+        "quantity": 2
+      }
+    ],
+    "total": 50.0,
+    "payment": 55.0,
+    "change": 5.0
+  },
+  {
+    "order_id": "GC101657",
+    "date_time": "2025-07-05 10:16:57",
+    "customer_name": "frsncis",
+    "items": [
+      {
+        "name": "Ginger Calamansi",
+        "price": 25.0,
+        "quantity": 3
+      }
+    ],
+    "total": 75.0,
+    "payment": 555.0,
+    "change": 480.0
+  },
+  {
+    "order_id": "ORD-20250705104459",
+    "date_time": "2025-07-05 10:44:59",
+    "customer_name": "Customer 1",
+    "items": [
+      {
+        "name": "Ginger Calamansi",
+        "price": 25.0,
+        "quantity": 3
+      }
+    ],
+    "total": 75.0,
+    "payment": 555.0,
+    "change": 480.0
+  },
+  {
+    "order_id": "ORD-20250705105838",
+    "date_time": "2025-07-05 10:58:38",
+    "customer_name": "Customer 2",
+    "items": [
+      {
+        "name": "Ginger Calamansi",
+        "price": 25.0,
+        "quantity": 2
+      }
+    ],
+    "total": 50.0,
+    "payment": 80.0,
+    "change": 30.0
+  },
+  {
+    "order_id": "ORD-20250705124948",
+    "date_time": "2025-07-05 12:49:48",
+    "customer_name": "Customer 3",
+    "items": [
+      {
+        "name": "Ginger Calamansi",
+        "price": 25.0,
+        "quantity": 2
+      }
+    ],
+    "total": 50.0,
+    "payment": 100.0,
+    "change": 50.0
+  },
+  {
+    "order_id": "ORD-20250705125032",
+    "date_time": "2025-07-05 12:50:32",
+    "customer_name": "Customer 4",
+    "items": [
+      {
+        "name": "Ginger Calamansi",
+        "price": 25.0,
+        "quantity": 2
+      }
+    ],
+    "total": 50.0,
+    "payment": 100.0,
+    "change": 50.0
+  },
+  {
+    "order_id": "ORD-20250705125058",
+    "date_time": "2025-07-05 12:50:58",
+    "customer_name": "francis",
+    "items": [
+      {
+        "name": "Ginger Calamansi",
+        "price": 25.0,
+        "quantity": 1
+      }
+    ],
+    "total": 25.0,
+    "payment": 50.0,
+    "change": 25.0
+  },
+  {
+    "order_id": "ORD-20250705125932",
+    "date_time": "2025-07-05 12:59:32",
+    "customer_name": "Customer 5",
+    "items": [
+      {
+        "name": "Ginger Calamansi",
+        "price": 25.0,
+        "quantity": 1
+      }
+    ],
+    "total": 25.0,
+    "payment": 80.0,
+    "change": 55.0
+  },
+  {
+    "order_id": "ORD-20250705130427",
+    "date_time": "2025-07-05 13:04:27",
+    "customer_name": "Customer 6",
+    "items": [
+      {
+        "name": "Ginger Calamansi",
+        "price": 25.0,
+        "quantity": 1
+      }
+    ],
+    "total": 25.0,
+    "payment": 80.0,
+    "change": 55.0
+  },
+  {
+    "order_id": "ORD-20250705160425",
+    "date_time": "2025-07-05 16:04:25",
+    "customer_name": "Customer 7",
+    "items": [
+      {
+        "name": "Ginger Calamansi",
+        "price": 25.0,
+        "quantity": 17
+      }
+    ],
+    "total": 425.0,
+    "payment": 1000.0,
+    "change": 575.0
+  }
+]
