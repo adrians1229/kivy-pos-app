@@ -1,5 +1,4 @@
 [app]
-
 # (str) Title of your application
 title = POS System
 
@@ -59,9 +58,11 @@ android.copy_libs = 1
 android.archs = arm64-v8a, armeabi-v7a
 
 [buildozer]
-
 # (int) Log level (0 = error only, 1 = info, 2 = debug (with command output))
 log_level = 2
 
 # (int) Display warning if buildozer is run as root (0 = False, 1 = True)
 warn_on_root = 1
+
+[android]
+# Add any android-specific configurations here if needed
