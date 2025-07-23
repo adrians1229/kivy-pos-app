@@ -44,32 +44,64 @@ jobs:
         pip install buildozer
         pip install cython
         
-    - name: Setup Android SDK
+    - name: Fix Android SDK Setup
       run: |
-        mkdir -p $HOME/.buildozer/android/platform
-        cd $HOME/.buildozer/android/platform
+        # Remove problematic SDK if exists
+        rm -rf ~/.buildozer/android/platform/android-sdk || true
         
-        # Download Android SDK command line tools
-        wget https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
-        unzip commandlinetools-linux-9477386_latest.zip
-        mkdir -p android-sdk/cmdline-tools/latest
-        mv cmdline-tools/* android-sdk/cmdline-tools/latest/
+        # Create SDK directory
+        mkdir -p ~/.buildozer/android/platform/android-sdk
+        cd ~/.buildozer/android/platform/android-sdk
         
-        export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
-        export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin
+        # Download command line tools
+        echo "Downloading Android command line tools..."
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+        unzip -q commandlinetools-linux-9477386_latest.zip
+        rm commandlinetools-linux-9477386_latest.zip
         
-        # Accept licenses and install required packages
-        yes | sdkmanager --licenses
-        sdkmanager "platform-tools" "platforms;android-31" "build-tools;31.0.0"
+        # Fix directory structure
+        echo "Setting up directory structure..."
+        mkdir -p cmdline-tools/latest
+        mv cmdline-tools/* cmdline-tools/latest/ || true
+        
+        # Create compatibility symlinks for buildozer
+        mkdir -p tools/bin
+        ln -sf ../../cmdline-tools/latest/bin/sdkmanager tools/bin/sdkmanager
+        ln -sf ../../cmdline-tools/latest/bin/avdmanager tools/bin/avdmanager
+        
+        # Set environment variables
+        export ANDROID_HOME=~/.buildozer/android/platform/android-sdk
+        echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
+        export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
+        echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+        
+        # Accept all SDK licenses
+        echo "Accepting Android SDK licenses..."
+        yes | ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+        
+        # Install essential SDK packages
+        echo "Installing essential SDK packages..."
+        ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3" || true
+        
+        echo "Android SDK setup completed successfully!"
         
     - name: Build APK
       run: |
-        export ANDROID_HOME=$HOME/.buildozer/android/platform/android-sdk
-        export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools
+        export ANDROID_HOME=~/.buildozer/android/platform/android-sdk
+        export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
+        echo "Starting APK build..."
         buildozer android debug
         
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: android-apk
+        name: pos-system-apk
         path: bin/*.apk
+        
+    - name: List built files (for debugging)
+      run: |
+        echo "Contents of bin directory:"
+        ls -la bin/ || echo "No bin directory found"
+        echo "Looking for APK files:"
+        find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
