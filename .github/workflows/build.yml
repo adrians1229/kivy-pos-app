@@ -1,9 +1,11 @@
 name: Build Android APK
+
 on:
   push:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,6 +25,17 @@ jobs:
       with:
         python-version: '3.9'
         
+    - name: Cache buildozer directory
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.buildozer
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+        restore-keys: |
+          ${{ runner.os }}-buildozer-
+        
     - name: Install system dependencies
       run: |
         sudo apt-get update
@@ -35,73 +48,156 @@ jobs:
           python3-pip \
           python3-setuptools \
           python3-dev \
+          python3-venv \
           libffi-dev \
-          libssl-dev
+          libssl-dev \
+          zlib1g-dev \
+          libncurses5-dev \
+          libncursesw5-dev \
+          libtinfo5 \
+          cmake \
+          libltdl-dev \
+          autotools-dev \
+          autoconf \
+          libtool \
+          pkg-config
         
-    - name: Install Buildozer
+    - name: Install Python dependencies
       run: |
-        python -m pip install --upgrade pip
-        pip install buildozer
-        pip install cython
+        python -m pip install --upgrade pip wheel setuptools
+        pip install buildozer cython
         
-    - name: Fix Android SDK Setup
+    - name: Setup Android SDK and NDK
       run: |
-        # Remove problematic SDK if exists
-        rm -rf ~/.buildozer/android/platform/android-sdk || true
+        # Set environment variables
+        export ANDROID_HOME=~/.buildozer/android/platform/android-sdk
+        export ANDROID_NDK_HOME=~/.buildozer/android/platform/android-ndk-r25b
         
-        # Create SDK directory
-        mkdir -p ~/.buildozer/android/platform/android-sdk
-        cd ~/.buildozer/android/platform/android-sdk
+        # Create directories
+        mkdir -p ~/.buildozer/android/platform
+        cd ~/.buildozer/android/platform
         
-        # Download command line tools
-        echo "Downloading Android command line tools..."
+        # Clean up any existing installations
+        rm -rf android-sdk android-ndk-r25b || true
+        
+        # Download and setup Android SDK Command Line Tools
+        echo "📱 Setting up Android SDK..."
         wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
         unzip -q commandlinetools-linux-9477386_latest.zip
         rm commandlinetools-linux-9477386_latest.zip
         
-        # Fix directory structure
-        echo "Setting up directory structure..."
-        mkdir -p cmdline-tools/latest
-        mv cmdline-tools/* cmdline-tools/latest/ || true
+        # Create proper SDK structure
+        mkdir -p android-sdk/cmdline-tools
+        mv cmdline-tools android-sdk/cmdline-tools/latest
         
-        # Create compatibility symlinks for buildozer
-        mkdir -p tools/bin
-        ln -sf ../../cmdline-tools/latest/bin/sdkmanager tools/bin/sdkmanager
-        ln -sf ../../cmdline-tools/latest/bin/avdmanager tools/bin/avdmanager
+        # Create tools symlinks for buildozer compatibility
+        mkdir -p android-sdk/tools/bin
+        ln -sf ../../cmdline-tools/latest/bin/sdkmanager android-sdk/tools/bin/sdkmanager
+        ln -sf ../../cmdline-tools/latest/bin/avdmanager android-sdk/tools/bin/avdmanager
         
-        # Set environment variables
-        export ANDROID_HOME=~/.buildozer/android/platform/android-sdk
+        # Update PATH and environment
         echo "ANDROID_HOME=$ANDROID_HOME" >> $GITHUB_ENV
-        export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
         echo "$ANDROID_HOME/cmdline-tools/latest/bin" >> $GITHUB_PATH
         echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
+        export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
         
-        # Accept all SDK licenses
-        echo "Accepting Android SDK licenses..."
-        yes | ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
+        # Accept SDK licenses
+        echo "📝 Accepting Android SDK licenses..."
+        yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null 2>&1 || true
         
-        # Install essential SDK packages
-        echo "Installing essential SDK packages..."
-        ~/.buildozer/android/platform/android-sdk/cmdline-tools/latest/bin/sdkmanager "platform-tools" "platforms;android-30" "build-tools;30.0.3" || true
+        # Install required SDK components
+        echo "📦 Installing SDK components..."
+        $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager \
+          "platform-tools" \
+          "platforms;android-30" \
+          "build-tools;30.0.3" \
+          "ndk;25.2.9519653" || true
         
-        echo "Android SDK setup completed successfully!"
+        # Download and setup Android NDK r25b (if not installed via sdkmanager)
+        if [ ! -d "$ANDROID_NDK_HOME" ]; then
+          echo "📱 Setting up Android NDK r25b..."
+          wget -q https://dl.google.com/android/repository/android-ndk-r25b-linux.zip
+          unzip -q android-ndk-r25b-linux.zip
+          rm android-ndk-r25b-linux.zip
+        fi
+        
+        echo "✅ Android SDK and NDK setup completed!"
+        
+    - name: Validate buildozer.spec
+      run: |
+        if [ ! -f buildozer.spec ]; then
+          echo "❌ buildozer.spec file not found!"
+          exit 1
+        fi
+        echo "✅ buildozer.spec found"
+        
+        # Check for main.py
+        if [ ! -f main.py ]; then
+          echo "❌ main.py file not found!"
+          exit 1
+        fi
+        echo "✅ main.py found"
         
     - name: Build APK
       run: |
         export ANDROID_HOME=~/.buildozer/android/platform/android-sdk
+        export ANDROID_NDK_HOME=~/.buildozer/android/platform/android-ndk-r25b
         export PATH="$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools"
-        echo "Starting APK build..."
+        export JAVA_HOME=/usr/lib/jvm/temurin-11-jdk-amd64
+        
+        echo "🏗️ Starting APK build..."
+        echo "Using ANDROID_HOME: $ANDROID_HOME"
+        echo "Using ANDROID_NDK_HOME: $ANDROID_NDK_HOME"
+        echo "Using JAVA_HOME: $JAVA_HOME"
+        
+        # Initialize buildozer (this will create necessary files)
         buildozer android debug
         
-    - name: Upload APK
+    - name: Upload APK artifact
       uses: actions/upload-artifact@v4
+      if: success()
       with:
         name: pos-system-apk
         path: bin/*.apk
+        retention-days: 30
         
-    - name: List built files (for debugging)
+    - name: Upload build logs on failure
+      uses: actions/upload-artifact@v4
+      if: failure()
+      with:
+        name: build-logs
+        path: |
+          .buildozer/android/platform/build-*/
+          .buildozer/android/logs/
+        retention-days: 7
+        
+    - name: Debug information
+      if: always()
       run: |
-        echo "Contents of bin directory:"
-        ls -la bin/ || echo "No bin directory found"
-        echo "Looking for APK files:"
+        echo "📊 Build Debug Information:"
+        echo "=========================="
+        
+        echo "📁 Directory structure:"
+        ls -la
+        
+        echo ""
+        echo "📦 Bin directory contents:"
+        ls -la bin/ 2>/dev/null || echo "No bin directory found"
+        
+        echo ""
+        echo "🔍 Searching for APK files:"
         find . -name "*.apk" -type f 2>/dev/null || echo "No APK files found"
+        
+        echo ""
+        echo "🏗️ Buildozer directory structure:"
+        ls -la .buildozer/ 2>/dev/null || echo "No .buildozer directory found"
+        
+        echo ""
+        echo "📱 Android SDK info:"
+        ls -la ~/.buildozer/android/platform/ 2>/dev/null || echo "No Android platform directory found"
+        
+        echo ""
+        echo "🌍 Environment variables:"
+        echo "ANDROID_HOME: $ANDROID_HOME"
+        echo "JAVA_HOME: $JAVA_HOME"
+        echo "PATH: $PATH"
